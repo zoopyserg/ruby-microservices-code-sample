@@ -1,0 +1,16 @@
+---
+- hosts: app
+  gather_facts: yes
+  become: yes
+  roles:
+    - geerlingguy.filebeat
+  tasks:
+    - name: ensure filebeat config is uploaded
+      copy:
+        src: filebeat.config.yml
+        dest: /etc/filebeat/filebeat.yml
+      notify: restart filebeat
+    - name: restart filebeat
+      service: name=filebeat state=restarted
+    - name: load dashboards to kibana
+      command: filebeat setup --dashboards

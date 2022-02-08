@@ -1,0 +1,6 @@
+db:
+  database: ms-auth-dev
+  host: localhost
+  user: root
+app:
+  secret: some-secret

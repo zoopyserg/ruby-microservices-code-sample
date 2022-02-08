@@ -1,0 +1,3 @@
+config/settings.local.yml
+log/*
+!log/.keep

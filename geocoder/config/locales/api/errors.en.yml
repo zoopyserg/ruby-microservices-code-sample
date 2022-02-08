@@ -1,0 +1,4 @@
+en:
+  api:
+    errors:
+      unauthorized: 'Unauthorized'

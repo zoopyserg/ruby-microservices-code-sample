@@ -1,0 +1,20 @@
+filebeat:
+  inputs:
+    - type: log
+      json:
+        message_key: message
+        keys_under_root: true
+      paths:
+      - /var/log/ads/app.log
+      - /var/log/auth/app.log
+      - /var/log/geocoder/app.log
+  processors:
+    - drop_fields:
+        fields: ["uuid", "token", "password", "session_uuid"]
+        ignore_missing: true
+setup:
+  kibana:
+    host: "http://kibana:5601"
+output:
+  elasticsearch:
+    hosts: "http://elacticsearch:9200"

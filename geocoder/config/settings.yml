@@ -1,0 +1,8 @@
+app:
+  name: geocoder
+  secret: geocoder_secret
+rabbit_mq:
+  consumer_pool: 5
+logger:
+  path: log/app.log
+  level: info

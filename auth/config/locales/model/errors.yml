@@ -1,0 +1,13 @@
+en:
+  model:
+    errors:
+      user:
+        name:
+          blank: 'Name is empty'
+        email:
+          blank: 'Email is empty'
+        password:
+          blank: 'Password is empty'
+      user_session:
+        uuid:
+          blank: 'UUID is empty'

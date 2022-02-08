@@ -1,0 +1,13 @@
+---
+- hosts: app
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: ensure env files are uploaded
+      copy:
+        src: 'env/{{ item }}'
+        dest: '/home/{{ ansible_user }}/.{{ item }}_env'
+      with_items:
+        - ads
+        - geocoder
+        - auth

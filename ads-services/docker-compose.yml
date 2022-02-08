@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: node3
+    ports:
+      - 5672:5672 
+      - 15672:15672
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+  elacticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: elacticsearch
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+  filebeat:
+    image: docker.elastic.co/beats/filebeat-oss:7.10.2
+    container_name: filebeat
+    depends_on:
+      - elacticsearch
+    volumes:
+      - filebeat:/usr/share/filebeat/data
+      - ./filebeat/pipelines:/usr/share/logstash/config/pipelines:ro
+      - ./filebeat/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
+      - ../ads/log:/var/log/ads:ro
+      - ../geocoder/log:/var/log/geocoder:ro
+      - ../auth/log:/var/log/auth:ro
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.10.2
+    container_name: kibana
+    depends_on:
+      - elacticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elacticsearch:9200"
+    ports:
+      - 5601:5601
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3005:3000
+    volumes:
+      - grafana:/var/lib/grafana
+volumes:
+  rabbitmq:
+  filebeat:
+  elasticsearch:
+  prometheus:
+  grafana:

@@ -1,0 +1,69 @@
+---
+- hosts: db
+  become: yes
+  gather_facts: no
+  roles:
+    - common
+    - name: ensure required packages are installed
+      apt:
+        name:
+          - postgresql
+          - libpq-dev
+          - python3-psycopg2
+- hosts: db
+  become: yes
+  become_user: postgres
+  gather_facts: no
+  vars:
+    databases: 
+      - ms-ads-production
+      - ms-auth
+    user: ads
+    password: KMKQ5jCj6SsTMrkV
+  tasks:
+    - name: ensure databases are created
+      postgresql_db:
+        name: '{{ item }}'
+      with_items: '{{ databases }}'
+    - name: ensure user has access to database
+      postgresql_user:
+        db: '{{ item }}'
+        name: '{{ user }}'
+        password: '{{ password }}'
+        priv: ALL
+      with_items: '{{ databases }}'
+    - name: ensure user has no extra privileges
+      postgresql_user:
+        name: '{{ user }}'
+        role_attr_flags: NOSUPERUSER,NOCREATEDB
+    - name: ensure no other user can access the database
+      postgresql_privs:
+        db: '{{ item }}'
+        role: PUBLIC
+        type: database
+        priv: ALL
+        state: absent
+      with_items: '{{ databases }}'
+    - name: postgresql should listen for all hosts
+      lineinfile:
+        dest: /etc/postgresql/10/main/postgresql.conf
+        regexp: "^listen_addresses"
+        line: "listen_addresses = '*'"
+        state: present
+      notify:
+        - restart postgres
+    - name: configure pg_hba.conf
+      lineinfile:
+        dest: /etc/postgresql/10/main/pg_hba.conf
+        regexp: '^{{ item }}'
+        line: '{{ item }}'
+        state: present
+      with_items:
+        - 'host all all 0.0.0.0/0 md5'
+        - 'host all all ::/0 md5'
+      notify:
+        - restart postgres
+  handlers:
+    - name: restart postgres
+      service: name=postgresql state=restarted
+      

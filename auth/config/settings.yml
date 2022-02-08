@@ -1,0 +1,11 @@
+app:
+  name: auth
+db:
+  adapter: postgresql
+pagination:
+  page_size: 10
+rabbit_mq:
+  consumer_pool: 1
+logger:
+  path: log/app.log
+  level: info

@@ -1,0 +1,24 @@
+---
+- hosts: kibana
+  become: yes
+  gather_facts: no
+  roles:
+    - docker
+  vars:
+    image: docker.elastic.co/kibana/kibana:7.15.0
+  tasks:
+    - name: pull image on remote
+      become: yes
+      docker_image:
+        name: '{{ image }}'
+        source: pull
+    - name: start kibana container
+      docker_container:
+        name: kibana
+        image: '{{ image }}'
+        network_mode: host
+        env: 'ELASTICSEARCH_HOSTS=http://10.0.0.36:9200'
+        restart_policy: on-failure
+        restart_retries: 3
+        tty: yes
+        state: started

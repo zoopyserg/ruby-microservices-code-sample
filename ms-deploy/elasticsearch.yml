@@ -1,0 +1,11 @@
+---
+- hosts: elasticsearch
+  become: yes
+  roles:
+   - elastic.elasticsearch
+  vars:
+    es_heap_size: "2g"
+    es_config:
+      cluster.name: "elasticsearch-cluster"
+      network.host: 0.0.0.0
+      discovery.type: single-node

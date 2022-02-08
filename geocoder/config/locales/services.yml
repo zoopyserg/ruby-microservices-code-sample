@@ -1,0 +1,5 @@
+en:
+  services:
+    geocoder:
+      find_service:
+        not_found: 'City not found'

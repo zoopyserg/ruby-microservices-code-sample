@@ -1,0 +1,6 @@
+db:
+  database: ms-auth-test
+  host: localhost
+  user: root
+app:
+  secret: some-secret
