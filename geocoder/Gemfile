@@ -25,6 +25,7 @@ gem 'sinatra-contrib', '~> 2.1'
 
 gem 'config', '~> 2.2'
 gem 'i18n', '~> 1.8'
+gem 'prometheus-client', '~> 2.1.0'
 gem 'pry', '~> 0.14'
 
 

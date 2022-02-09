@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 Application.configure do |app|
+  logger_output = app.environment == :production ? STDOUT : app.root.concat('/', Settings.logger.path)
   logger = Ougai::Logger.new(
-    app.root.concat('/', Settings.logger.path),
+    logger_output,
     level: Settings.logger.level
   )
 

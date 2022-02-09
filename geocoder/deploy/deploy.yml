@@ -1,0 +1,89 @@
+- hosts: app
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: ensure trusted key is added
+      apt_key:
+        url: 'https://download.docker.com/linux/ubuntu/gpg'
+        state: present
+    - name: ensure docker repository is added
+      apt_repository:
+        repo: 'deb https://download.docker.com/linux/ubuntu bionic stable'
+        state: present
+    - name: ensure packages are installed
+      apt:
+        name: '{{ item }}'
+      with_items:
+        - 'ca-certificates'
+        - 'curl'
+        - 'gnupg'
+        - 'lsb-release'
+    - name: ensure docker is installed
+      apt:
+        name: '{{ item }}'
+      with_items:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - python3-docker
+- hosts: app
+  gather_facts: no
+  vars:
+    image: geocoder
+  tasks:
+    - name: setup facts
+      set_fact:
+        timestamp: '{{ lookup("pipe", "date -u +%Y%m%d%H%M%S") }}'
+    - name: build docker image
+      delegate_to: 127.0.0.1
+      docker_image:
+        build:
+          path: ../
+          pull: no
+        name: '{{ image }}'
+        source: build
+        force_source: yes
+    - name: save image to file
+      delegate_to: 127.0.0.1
+      docker_image:
+        name: '{{ image }}'
+        archive_path: '{{ image }}.tar'
+        tag: latest
+        source: local
+    - name: compress image
+      delegate_to: 127.0.0.1
+      archive:
+        path: '{{ image }}.tar'
+        dest: '{{ image }}.tar.gz'
+        remove: yes
+    - name: upload image
+      copy:
+        src: '{{ image }}.tar.gz'
+        dest: '/tmp/{{ timestamp }}--{{ image }}.tar.gz'
+    - name: extract image
+      shell: 'gunzip {{ timestamp }}--{{ image }}.tar.gz'
+      args:
+        chdir: /tmp
+    - name: load image
+      become: yes
+      docker_image:
+        name: geocoder
+        load_path: '/tmp/{{ timestamp }}--{{ image }}.tar'
+        source: load
+        force_source: yes
+    - name: remove image file
+      file:
+        path: '/tmp/{{ timestamp }}--{{ image }}.tar'
+        state: absent
+    - name: start geocoder container
+      become: yes
+      docker_container:
+        name: geocoder
+        image: '{{ image }}'
+        network_mode: host
+        restart_policy: on-failure
+        restart_retries: 3
+        env_file: '/home/{{ ansible_user }}/.geocoder_env'
+        tty: yes
+        state: started
+        
